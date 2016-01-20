@@ -156,8 +156,7 @@ public class Repository<TP, TH> {
     /**
      * this method receive the max number of notifications that the callback has to call
      *
-     * @param maxNumber
-     * must be greater than 0
+     * @param maxNumber must be greater than 0
      */
     public void setMaxNumberOfListenerNotified(int maxNumber) {
         if (maxNumber > 0) {
@@ -167,14 +166,14 @@ public class Repository<TP, TH> {
 
     /**
      * this method set the flag to keep events when the  repository has no one to notify any event
-     * @param newHaveToSaveIgnoredEvents
-     * true for save the notifications and send in next #resumePendingEvents()
+     *
+     * @param newHaveToSaveIgnoredEvents true for save the notifications and send in next #resumePendingEvents()
      */
     public void setSaveIgnoredEvents(boolean newHaveToSaveIgnoredEvents) {
         mSaveIgnoredEvents = newHaveToSaveIgnoredEvents;
     }
 
-    public void setNetworkAdapter(NetworkOperationAdapter<TP,TH> adapter) {
+    public void setNetworkAdapter(NetworkOperationAdapter<TP, TH> adapter) {
         mDataSourceManager.setNetworkOperationAdapter(adapter);
     }
 }

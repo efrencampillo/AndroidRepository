@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.globant.repository.SimpleRepositoryListener;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
 
     SimpleRepositoryListener<MyModelExample, String> repositoryListener
             = new SimpleRepositoryListener<MyModelExample, String>(MyApplication.getRepository()) {
