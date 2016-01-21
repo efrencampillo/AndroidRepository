@@ -15,7 +15,7 @@ public class DataSourceManager<TP, TH> {
         mItems = new LinkedHashMap<>();
         mNetworkOperationAdapter = new NetworkOperationAdapter<TP, TH>() {
             @Override
-            public TP getFromNetworkSource(TH itemId) {
+            public TP getModelFromNetworkSource(TH itemId) {
                 return null;
             }
         };
@@ -34,22 +34,16 @@ public class DataSourceManager<TP, TH> {
     }
 
     void retrieveItem(final TH itemId) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                TP item = mNetworkOperationAdapter.getFromNetworkSource(itemId);
-                if (item != null) {
-                    insertRetrievedItem(itemId, item);
-                } else {
-                    myRepository.deliverError(item, "Error at retrieving Item " + itemId);
-                }
-            }
-        }).start();
+        mNetworkOperationAdapter.retrieveModelFromNetworkSource(itemId, this);
     }
 
     void insertRetrievedItem(TH itemId, TP item) {
         mItems.put(itemId, item);
         myRepository.deliverRetrieved(item);
+    }
+
+    void onErrorRetrievedItem(String message) {
+        myRepository.deliverError(null, message);
     }
 
     TP get(TH itemId) {

@@ -12,7 +12,7 @@ public class MyOkHttpNetworkAdapter extends NetworkOperationAdapter<MyModelExamp
     OkHttpClient mClient = new OkHttpClient();
 
     @Override
-    public MyModelExample getFromNetworkSource(String itemId) {
+    public MyModelExample getModelFromNetworkSource(String itemId) {
         try {
             Request request = new Request.Builder()
                     .url("http://www.google.com")

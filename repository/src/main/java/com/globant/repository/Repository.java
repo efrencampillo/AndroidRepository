@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Repository<TP, TH> {
 
-    private DataSourceManager<TP, TH> mDataSourceManager;
+    DataSourceManager<TP, TH> mDataSourceManager;
     private ArrayList<RepositoryListener<TP>> mListeners;
 
     public Repository() {
@@ -65,8 +65,10 @@ public class Repository<TP, TH> {
         }
     }
 
+    /*
+    * there is no call to this method, we have to write the update request
+    * */
     protected void deliverUpdated(TP item) {
-
         if (mListeners.isEmpty()) {
             mPendingNotifications.addPendingNotification(item,
                     RepositoryPendingNotifications.EVENT_UPDATED, null);
