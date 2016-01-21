@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
             //super.onRetrieved(item); call super to back the event to repository
             MyApplication.getRepository().getAvailableItems();
             MyApplication.getRepository().deleteFromRepository("itemIdToErase");
+            MyApplication.getRepository().getForcingRefresh("itemId");
         }
     };
 

@@ -2,7 +2,7 @@ package com.globant.repository;
 
 import java.util.ArrayList;
 
-public class Repository<TP, TH> {
+public final class Repository<TP, TH> {
 
     DataSourceManager<TP, TH> mDataSourceManager;
     private ArrayList<RepositoryListener<TP>> mListeners;
@@ -32,7 +32,19 @@ public class Repository<TP, TH> {
             return;
         }
 
-        mDataSourceManager.retrieveItem(itemId);
+        mDataSourceManager.retrieveItem(itemId, false);
+    }
+
+    /**
+     * this method can call twice time your listener
+     * once if the item is not on the repository
+     * and two if the item is already there
+     * */
+    public void getForcingRefresh(TH itemId) {
+        if (mDataSourceManager.contains(itemId)) {
+            deliverRetrieved(mDataSourceManager.get(itemId));
+        }
+        mDataSourceManager.retrieveItem(itemId, true);
     }
 
     public ArrayList<TP> getAvailableItems() {
@@ -46,6 +58,7 @@ public class Repository<TP, TH> {
         }
     }
 
+    //TODO include the AttachEvent to the main thread to avoid use runOnUIThread
 
     protected void deliverRetrieved(TP item) {
 

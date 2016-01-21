@@ -33,8 +33,17 @@ public class DataSourceManager<TP, TH> {
         return mItems.containsKey(itemId);
     }
 
-    void retrieveItem(final TH itemId) {
-        mNetworkOperationAdapter.retrieveModelFromNetworkSource(itemId, this);
+    void retrieveItem(final TH itemId, boolean forceRefresh) {
+        if (forceRefresh) {
+            mNetworkOperationAdapter.retrieveModelForcingRefreshFromNetworkSource(itemId, this);
+        } else {
+            mNetworkOperationAdapter.retrieveModelFromNetworkSource(itemId, this);
+        }
+    }
+
+    void insertUpdatedItem(TH itemId, TP item) {
+        mItems.put(itemId, item);
+        myRepository.deliverUpdated(item);
     }
 
     void insertRetrievedItem(TH itemId, TP item) {
