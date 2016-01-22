@@ -14,7 +14,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        repository = new Repository<>();
+        repository = new Repository<>(this);
         repository.setNetworkAdapter(new MyOkHttpNetworkAdapter());
         repository.setMaxNumberOfListenerNotified(1);
         repository.setSaveIgnoredEvents(true);

@@ -1,5 +1,7 @@
 package com.globant.repository;
 
+import android.content.Context;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -7,6 +9,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
@@ -20,12 +23,18 @@ public class RepositoryTest {
     Repository<String, String> repository;
     NetworkOperationAdapter<String, String> networkOperationAdapter;
     RepositoryListener<String> listener;
+    Context context;
+    MainThreadAttacher attacher;
 
     @Before
     public void setUp() throws Exception {
-        repository = new Repository<>();
+        context = mock(Context.class);
+        attacher = mock(MainThreadAttacher.class);
+        repository = new Repository<>(context);
         networkOperationAdapter = mock(NetworkOperationAdapter.class);
         listener = mock(RepositoryListener.class);
+        repository.mAttacher = attacher;
+        setAttacherBehaviour();
     }
 
     @Test
@@ -126,5 +135,19 @@ public class RepositoryTest {
                 retrieveModelFromNetworkSource(anyString(), Matchers.any(DataSourceManager.class));
         repository.setNetworkAdapter(networkOperationAdapter);
     }
+
+    private void setAttacherBehaviour() {
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                listener.onRetrieved("");
+                listener.onUpdate("");
+                listener.onDeleted("");
+                listener.onError("", "");
+                return null;
+            }
+        }).when(attacher).attachEvent(any(RepositoryListener.class), any(NotificationEvent.class));
+    }
+
 
 }

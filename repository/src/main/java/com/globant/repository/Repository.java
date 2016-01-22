@@ -1,17 +1,21 @@
 package com.globant.repository;
 
+import android.content.Context;
+
 import java.util.ArrayList;
 
 public final class Repository<TP, TH> {
 
     DataSourceManager<TP, TH> mDataSourceManager;
     private ArrayList<RepositoryListener<TP>> mListeners;
+    MainThreadAttacher mAttacher;
 
-    public Repository() {
+    public Repository(Context context) {
         mListeners = new ArrayList<>();
         mPendingNotifications = new RepositoryPendingNotifications<>();
         mDataSourceManager = new DataSourceManager<>();
         mDataSourceManager.setRepository(this);
+        mAttacher = new MainThreadAttacher(context.getMainLooper(), this);
     }
 
     public void registerListener(RepositoryListener<TP> listener) {
@@ -35,15 +39,7 @@ public final class Repository<TP, TH> {
         mDataSourceManager.retrieveItem(itemId, false);
     }
 
-    /**
-     * this method can call twice time your listener
-     * once if the item is not on the repository
-     * and two if the item is already there
-     * */
     public void getForcingRefresh(TH itemId) {
-        if (mDataSourceManager.contains(itemId)) {
-            deliverRetrieved(mDataSourceManager.get(itemId));
-        }
         mDataSourceManager.retrieveItem(itemId, true);
     }
 
@@ -58,75 +54,64 @@ public final class Repository<TP, TH> {
         }
     }
 
-    //TODO include the AttachEvent to the main thread to avoid use runOnUIThread
-
     protected void deliverRetrieved(TP item) {
 
+        NotificationEvent<TP> notificationEvent =
+                new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_ADDED, null);
+
         if (mListeners.isEmpty()) {
-            mPendingNotifications.addPendingNotification(item,
-                    RepositoryPendingNotifications.EVENT_ADDED, null);
+            mPendingNotifications.addPendingNotification(notificationEvent);
             return;
         }
 
-        int numberOfNotifications = 0;
-        for (RepositoryListener<TP> listener : mListeners) {
-            listener.onRetrieved(item);
-            numberOfNotifications++;
-            if (!(numberOfNotifications < maxNumberOfNotifications)) {
-                break;
-            }
-        }
+        notifyListeners(notificationEvent);
     }
 
     /*
     * there is no call to this method, we have to write the update request
     * */
     protected void deliverUpdated(TP item) {
+        NotificationEvent<TP> notificationEvent =
+                new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_UPDATED, null);
+
+
         if (mListeners.isEmpty()) {
-            mPendingNotifications.addPendingNotification(item,
-                    RepositoryPendingNotifications.EVENT_UPDATED, null);
+            mPendingNotifications.addPendingNotification(notificationEvent);
             return;
         }
 
-        int numberOfNotifications = 0;
-        for (RepositoryListener<TP> listener : mListeners) {
-            listener.onUpdate(item);
-            numberOfNotifications++;
-            if (!(numberOfNotifications < maxNumberOfNotifications)) {
-                break;
-            }
-        }
+        notifyListeners(notificationEvent);
     }
 
     protected void deliverDeleted(TP item) {
+        NotificationEvent<TP> notificationEvent =
+                new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_DELETED, null);
 
         if (mListeners.isEmpty()) {
-            mPendingNotifications.addPendingNotification(item,
-                    RepositoryPendingNotifications.EVENT_DELETED, null);
+            mPendingNotifications.addPendingNotification(notificationEvent);
             return;
         }
 
-        int numberOfNotifications = 0;
-        for (RepositoryListener<TP> listener : mListeners) {
-            listener.onDeleted(item);
-            numberOfNotifications++;
-            if (!(numberOfNotifications < maxNumberOfNotifications)) {
-                break;
-            }
-        }
+        notifyListeners(notificationEvent);
     }
 
     protected void deliverError(TP item, String messageError) {
+        NotificationEvent<TP> notificationEvent =
+                new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_FAIL,
+                        messageError);
 
         if (mListeners.isEmpty()) {
-            mPendingNotifications.addPendingNotification(item,
-                    RepositoryPendingNotifications.EVENT_FAIL, messageError);
+            mPendingNotifications.addPendingNotification(notificationEvent);
             return;
         }
 
+        notifyListeners(notificationEvent);
+    }
+
+    private void notifyListeners(NotificationEvent<TP> notificationEvent) {
         int numberOfNotifications = 0;
         for (RepositoryListener<TP> listener : mListeners) {
-            listener.onError(item, messageError);
+            mAttacher.attachEvent(listener, notificationEvent);
             numberOfNotifications++;
             if (!(numberOfNotifications < maxNumberOfNotifications)) {
                 break;
@@ -145,28 +130,17 @@ public final class Repository<TP, TH> {
     boolean mSaveIgnoredEvents = false;
 
     public void resumePendingEvents() {
-
         NotificationEvent<TP> notificationEvent = mPendingNotifications.getNextPendingNotification();
 
-        if (notificationEvent == null) {
+        if (mListeners.isEmpty()) {
+            mPendingNotifications.addPendingNotification(notificationEvent);
             return;
         }
 
-        switch (notificationEvent.mEventType) {
-            case RepositoryPendingNotifications.EVENT_ADDED:
-                deliverRetrieved(notificationEvent.mItem);
-                break;
-            case RepositoryPendingNotifications.EVENT_DELETED:
-                deliverDeleted(notificationEvent.mItem);
-                break;
-            case RepositoryPendingNotifications.EVENT_UPDATED:
-                deliverUpdated(notificationEvent.mItem);
-                break;
-            case RepositoryPendingNotifications.EVENT_FAIL:
-                deliverError(notificationEvent.mItem, notificationEvent.mMessage);
-                break;
-        }
+        notifyListeners( notificationEvent);
     }
+
+
 
     /**
      * this method receive the max number of notifications that the callback has to call

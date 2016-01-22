@@ -23,8 +23,8 @@ public class RepositoryPendingNotifications<TP> {
         return null;
     }
 
-    void addPendingNotification(TP item, int eventType, String message) {
-        mPendingNotifications.add(new NotificationEvent<>(item, eventType, message));
+    void addPendingNotification(NotificationEvent notificationEvent) {
+        mPendingNotifications.add(notificationEvent);
     }
 
 

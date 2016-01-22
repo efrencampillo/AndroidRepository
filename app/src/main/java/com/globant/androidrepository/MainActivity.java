@@ -2,6 +2,7 @@ package com.globant.androidrepository;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.globant.repository.SimpleRepositoryListener;
 
@@ -15,6 +16,12 @@ public class MainActivity extends AppCompatActivity {
             MyApplication.getRepository().getAvailableItems();
             MyApplication.getRepository().deleteFromRepository("itemIdToErase");
             MyApplication.getRepository().getForcingRefresh("itemId");
+        }
+
+        @Override
+        public void onUpdate(MyModelExample item) {
+            //not call to super to discard event
+            Toast.makeText(MainActivity.this, "updated model", Toast.LENGTH_SHORT).show();
         }
     };
 

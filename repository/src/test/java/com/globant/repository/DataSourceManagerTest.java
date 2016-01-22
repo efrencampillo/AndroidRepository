@@ -1,5 +1,7 @@
 package com.globant.repository;
 
+import android.content.Context;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.After;
@@ -9,6 +11,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -19,14 +22,20 @@ public class DataSourceManagerTest {
     Repository<String, String> repository;
     NetworkOperationAdapter<String, String> networkAdapter;
     RepositoryListener<String> listener;
+    MainThreadAttacher attacher;
     boolean isRetrieved = false;
     boolean isUpdated = false;
     boolean isDeleted = false;
     boolean isError = false;
 
+    Context context;
+
     @Before
     public void setUp() {
-        repository = new Repository<>();
+        attacher = mock(MainThreadAttacher.class);
+        context = mock(Context.class);
+        repository = new Repository<>(context);
+        repository.mAttacher = attacher;
         networkAdapter = mock(NetworkOperationAdapter.class);
 
         listener = new RepositoryListener<String>() {
@@ -51,7 +60,7 @@ public class DataSourceManagerTest {
             }
         };
         repository.registerListener(listener);
-
+        setAttacherBehaviour();
     }
 
     @After
@@ -129,6 +138,19 @@ public class DataSourceManagerTest {
                 when(networkAdapter).
                 retrieveModelFromNetworkSource(anyString(), Matchers.any(DataSourceManager.class));
         repository.setNetworkAdapter(networkAdapter);
+    }
+
+    private void setAttacherBehaviour() {
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                listener.onRetrieved("");
+                listener.onUpdate("");
+                listener.onDeleted("");
+                listener.onError("", "");
+                return null;
+            }
+        }).when(attacher).attachEvent(any(RepositoryListener.class), any(NotificationEvent.class));
     }
 
 }
