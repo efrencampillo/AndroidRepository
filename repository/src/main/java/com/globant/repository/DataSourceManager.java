@@ -4,36 +4,44 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DataSourceManager<TP, TH> {
+/**
+ * @param <TM> Models to be stored by the Repository.
+ * @param <TI> Model's id.
+ * @author Efrén Campillo
+ * @author Fernando Sierra Pastrana
+ * @version 1.0
+ * @since 25/02/2016
+ */
+public class DataSourceManager<TM, TI> {
 
-    protected Map<TH, TP> mItems;
+    protected Map<TI, TM> mItems;
 
-    private Repository<TP, TH> myRepository;
-    private NetworkOperationAdapter<TP, TH> mNetworkOperationAdapter;
+    private Repository<TM, TI> myRepository;
+    private NetworkOperationAdapter<TM, TI> mNetworkOperationAdapter;
 
     DataSourceManager() {
         mItems = new LinkedHashMap<>();
-        mNetworkOperationAdapter = new NetworkOperationAdapter<TP, TH>() {
+        mNetworkOperationAdapter = new NetworkOperationAdapter<TM, TI>() {
             @Override
-            public TP getModelFromNetworkSource(TH itemId) {
+            public TM getModelFromNetworkSource(TI itemId) {
                 return null;
             }
         };
     }
 
-    void setNetworkOperationAdapter(NetworkOperationAdapter<TP, TH> adapter) {
+    void setNetworkOperationAdapter(NetworkOperationAdapter<TM, TI> adapter) {
         mNetworkOperationAdapter = adapter;
     }
 
-    protected void setRepository(Repository<TP, TH> repository) {
+    protected void setRepository(Repository<TM, TI> repository) {
         myRepository = repository;
     }
 
-    boolean contains(TH itemId) {
+    boolean contains(TI itemId) {
         return mItems.containsKey(itemId);
     }
 
-    void retrieveItem(final TH itemId, boolean forceRefresh) {
+    void retrieveItem(final TI itemId, boolean forceRefresh) {
         if (forceRefresh) {
             mNetworkOperationAdapter.retrieveModelForcingRefreshFromNetworkSource(itemId, this);
         } else {
@@ -41,12 +49,12 @@ public class DataSourceManager<TP, TH> {
         }
     }
 
-    void insertUpdatedItem(TH itemId, TP item) {
+    void insertUpdatedItem(TI itemId, TM item) {
         mItems.put(itemId, item);
         myRepository.deliverUpdated(item);
     }
 
-    void insertRetrievedItem(TH itemId, TP item) {
+    void insertRetrievedItem(TI itemId, TM item) {
         mItems.put(itemId, item);
         myRepository.deliverRetrieved(item);
     }
@@ -55,11 +63,11 @@ public class DataSourceManager<TP, TH> {
         myRepository.deliverError(null, message);
     }
 
-    TP get(TH itemId) {
+    TM get(TI itemId) {
         return mItems.get(itemId);
     }
 
-    ArrayList<TP> getAll() {
+    ArrayList<TM> getAll() {
         return new ArrayList<>(mItems.values());
     }
 
@@ -67,7 +75,7 @@ public class DataSourceManager<TP, TH> {
         mItems.clear();
     }
 
-    TP deleteItem(TH itemId) {
+    TM deleteItem(TI itemId) {
         return mItems.remove(itemId);
     }
 

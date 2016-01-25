@@ -1,13 +1,13 @@
 package com.globant.repository;
 
-public abstract class NetworkOperationAdapter<TP, TH> {
+public abstract class NetworkOperationAdapter<TM, TI> {
 
-    void retrieveModelFromNetworkSource(final TH itemId,
-                                        final DataSourceManager<TP, TH> dataSourceManager) {
+    void retrieveModelFromNetworkSource(final TI itemId,
+                                        final DataSourceManager<TM, TI> dataSourceManager) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                TP item = getModelFromNetworkSource(itemId);
+                TM item = getModelFromNetworkSource(itemId);
                 if (item != null) {
                     dataSourceManager.insertRetrievedItem(itemId, item);
                 } else {
@@ -18,12 +18,12 @@ public abstract class NetworkOperationAdapter<TP, TH> {
         }).start();
     }
 
-    void retrieveModelForcingRefreshFromNetworkSource(final TH itemId,
-                                                      final DataSourceManager<TP, TH> dataSourceManager) {
+    void retrieveModelForcingRefreshFromNetworkSource(final TI itemId,
+                                                      final DataSourceManager<TM, TI> dataSourceManager) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                TP item = getModelFromNetworkSource(itemId);
+                TM item = getModelFromNetworkSource(itemId);
                 if (item != null) {
                     dataSourceManager.insertUpdatedItem(itemId, item);
                 } else {
@@ -34,5 +34,5 @@ public abstract class NetworkOperationAdapter<TP, TH> {
         }).start();
     }
 
-    public abstract TP getModelFromNetworkSource(TH itemId);
+    public abstract TM getModelFromNetworkSource(TI itemId);
 }

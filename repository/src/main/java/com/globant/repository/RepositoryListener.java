@@ -1,12 +1,12 @@
 package com.globant.repository;
 
-public interface RepositoryListener<TP> {
-    void onRetrieved(TP object);
+public interface RepositoryListener<TM> {
+    void onRetrieved(TM object);
 
-    void onUpdate(TP object);
+    void onUpdate(TM object);
 
-    void onDeleted(TP object);
+    void onDeleted(TM object);
 
-    void onError(TP object, String message);
+    void onError(TM object, String message);
 
 }

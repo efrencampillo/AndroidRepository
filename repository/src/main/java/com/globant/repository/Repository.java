@@ -4,10 +4,20 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
-public final class Repository<TP, TH> {
+/**
+ * Class to manage the request, response and error of network and storage operations.
+ *
+ * @param <TM> Models to be stored by the Repository.
+ * @param <TI> Model's id.
+ * @author Efrén Campillo
+ * @author Fernando Sierra Pastrana
+ * @version 1.0
+ * @since 25/02/2016
+ */
+public final class Repository<TM, TI> {
 
-    DataSourceManager<TP, TH> mDataSourceManager;
-    private ArrayList<RepositoryListener<TP>> mListeners;
+    DataSourceManager<TM, TI> mDataSourceManager;
+    private final ArrayList<RepositoryListener<TM>> mListeners;
     MainThreadAttacher mAttacher;
 
     public Repository(Context context) {
@@ -18,19 +28,19 @@ public final class Repository<TP, TH> {
         mAttacher = new MainThreadAttacher(context.getMainLooper(), this);
     }
 
-    public void registerListener(RepositoryListener<TP> listener) {
+    public void registerListener(RepositoryListener<TM> listener) {
         if (!mListeners.contains(listener)) {
             mListeners.add(listener);
         }
     }
 
-    public void unregisterListener(RepositoryListener<TP> listener) {
+    public void unregisterListener(RepositoryListener<TM> listener) {
         if (mListeners.contains(listener)) {
             mListeners.remove(listener);
         }
     }
 
-    public void get(TH itemId) {
+    public void get(TI itemId) {
         if (mDataSourceManager.contains(itemId)) {
             deliverRetrieved(mDataSourceManager.get(itemId));
             return;
@@ -39,24 +49,24 @@ public final class Repository<TP, TH> {
         mDataSourceManager.retrieveItem(itemId, false);
     }
 
-    public void getForcingRefresh(TH itemId) {
+    public void getForcingRefresh(TI itemId) {
         mDataSourceManager.retrieveItem(itemId, true);
     }
 
-    public ArrayList<TP> getAvailableItems() {
+    public ArrayList<TM> getAvailableItems() {
         return mDataSourceManager.getAll();
     }
 
-    public void deleteFromRepository(TH itemId) {
-        TP item = mDataSourceManager.deleteItem(itemId);
+    public void deleteFromRepository(TI itemId) {
+        TM item = mDataSourceManager.deleteItem(itemId);
         if (item != null) {
             deliverDeleted(item);
         }
     }
 
-    protected void deliverRetrieved(TP item) {
+    protected void deliverRetrieved(TM item) {
 
-        NotificationEvent<TP> notificationEvent =
+        NotificationEvent<TM> notificationEvent =
                 new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_ADDED, null);
 
         if (mListeners.isEmpty()) {
@@ -70,8 +80,8 @@ public final class Repository<TP, TH> {
     /*
     * there is no call to this method, we have to write the update request
     * */
-    protected void deliverUpdated(TP item) {
-        NotificationEvent<TP> notificationEvent =
+    protected void deliverUpdated(TM item) {
+        NotificationEvent<TM> notificationEvent =
                 new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_UPDATED, null);
 
 
@@ -83,8 +93,8 @@ public final class Repository<TP, TH> {
         notifyListeners(notificationEvent);
     }
 
-    protected void deliverDeleted(TP item) {
-        NotificationEvent<TP> notificationEvent =
+    protected void deliverDeleted(TM item) {
+        NotificationEvent<TM> notificationEvent =
                 new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_DELETED, null);
 
         if (mListeners.isEmpty()) {
@@ -95,8 +105,8 @@ public final class Repository<TP, TH> {
         notifyListeners(notificationEvent);
     }
 
-    protected void deliverError(TP item, String messageError) {
-        NotificationEvent<TP> notificationEvent =
+    protected void deliverError(TM item, String messageError) {
+        NotificationEvent<TM> notificationEvent =
                 new NotificationEvent<>(item, RepositoryPendingNotifications.EVENT_FAIL,
                         messageError);
 
@@ -108,9 +118,9 @@ public final class Repository<TP, TH> {
         notifyListeners(notificationEvent);
     }
 
-    private void notifyListeners(NotificationEvent<TP> notificationEvent) {
+    private void notifyListeners(NotificationEvent<TM> notificationEvent) {
         int numberOfNotifications = 0;
-        for (RepositoryListener<TP> listener : mListeners) {
+        for (RepositoryListener<TM> listener : mListeners) {
             mAttacher.attachEvent(listener, notificationEvent);
             numberOfNotifications++;
             if (!(numberOfNotifications < maxNumberOfNotifications)) {
@@ -125,12 +135,12 @@ public final class Repository<TP, TH> {
     }
 
     //pending operations struct and configurations
-    RepositoryPendingNotifications<TP> mPendingNotifications;
+    RepositoryPendingNotifications<TM> mPendingNotifications;
     private int maxNumberOfNotifications = 1;
     boolean mSaveIgnoredEvents = false;
 
     public void resumePendingEvents() {
-        NotificationEvent<TP> notificationEvent = mPendingNotifications.getNextPendingNotification();
+        NotificationEvent<TM> notificationEvent = mPendingNotifications.getNextPendingNotification();
 
         if (mListeners.isEmpty()) {
             mPendingNotifications.addPendingNotification(notificationEvent);
@@ -143,7 +153,7 @@ public final class Repository<TP, TH> {
 
 
     /**
-     * this method receive the max number of notifications that the callback has to call
+     * This method receive the max number of notifications that the callback has to call
      *
      * @param maxNumber must be greater than 0
      */
@@ -154,15 +164,15 @@ public final class Repository<TP, TH> {
     }
 
     /**
-     * this method set the flag to keep events when the  repository has no one to notify any event
+     * This method set the flag to keep events when the repository has no one to notify any event
      *
-     * @param newHaveToSaveIgnoredEvents true for save the notifications and send in next #resumePendingEvents()
+     * @param newHaveToSaveIgnoredEvents true for save the notifications and send in next {@link #resumePendingEvents()}
      */
     public void setSaveIgnoredEvents(boolean newHaveToSaveIgnoredEvents) {
         mSaveIgnoredEvents = newHaveToSaveIgnoredEvents;
     }
 
-    public void setNetworkAdapter(NetworkOperationAdapter<TP, TH> adapter) {
+    public void setNetworkAdapter(NetworkOperationAdapter<TM, TI> adapter) {
         mDataSourceManager.setNetworkOperationAdapter(adapter);
     }
 }

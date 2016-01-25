@@ -3,9 +3,9 @@ package com.globant.repository;
 
 import java.util.ArrayList;
 
-public class RepositoryPendingNotifications<TP> {
+public class RepositoryPendingNotifications<TM> {
 
-    private ArrayList<NotificationEvent<TP>> mPendingNotifications;
+    private final ArrayList<NotificationEvent<TM>> mPendingNotifications;
 
     public static final int EVENT_DELETED = 0;
     public static final int EVENT_ADDED = 1;
@@ -16,8 +16,8 @@ public class RepositoryPendingNotifications<TP> {
         mPendingNotifications = new ArrayList<>();
     }
 
-    NotificationEvent<TP> getNextPendingNotification() {
-        if (mPendingNotifications.size() > 0) {
+    NotificationEvent<TM> getNextPendingNotification() {
+        if (!mPendingNotifications.isEmpty()) {
             return mPendingNotifications.remove(0);
         }
         return null;
