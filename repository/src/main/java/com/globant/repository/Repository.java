@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public final class Repository<TM, TI> {
 
     DataSourceManager<TM, TI> mDataSourceManager;
-    private final ArrayList<RepositoryListener<TM>> mListeners;
+    private ArrayList<RepositoryListener<TM>> mListeners;
     MainThreadAttacher mAttacher;
 
     public Repository(Context context) {
@@ -147,9 +147,8 @@ public final class Repository<TM, TI> {
             return;
         }
 
-        notifyListeners( notificationEvent);
+        notifyListeners(notificationEvent);
     }
-
 
 
     /**

@@ -1,32 +1,34 @@
 package com.globant.androidrepository;
 
 import android.app.Application;
+import android.content.Context;
 
 import com.globant.repository.Repository;
 
 public class MyApplication extends Application {
 
-    private static Repository<
-            MyModelExample,//Type of object to handle
-            String //type of id to handle
-            > repository;
+    private static Repository<MyModelExample, String> mRepository;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        repository = new Repository<>(this);
-        repository.setNetworkAdapter(new MyOkHttpNetworkAdapter());
-        repository.setMaxNumberOfListenerNotified(1);
-        repository.setSaveIgnoredEvents(true);
+        createRepository(this);
     }
 
     public static Repository<MyModelExample, String> getRepository() {
-        return repository;
+        return mRepository;
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        repository.clear();
+        mRepository.clear();
+    }
+
+    private void createRepository( Context context) {
+        mRepository = new Repository<>(context);
+        mRepository.setNetworkAdapter(new MyOkHttpNetworkAdapter());
+        mRepository.setMaxNumberOfListenerNotified(1);
+        mRepository.setSaveIgnoredEvents(true);
     }
 }
